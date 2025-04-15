@@ -1,12 +1,39 @@
 #include "SpeakingRecursian.h"
 using namespace std;
 
+const string VOWELS = "eiu";
+const string CONSONANTS = "bknrs'";
+
+// Helper function to recursively build Recursian words
+void buildWords(int syllablesLeft, string soFar, bool isFirstSyllable, Vector<string>& result) {
+    if (syllablesLeft == 0) {
+        result += soFar;
+        return;
+    }
+
+    if (isFirstSyllable) {
+        // First syllable can be a single vowel
+        for (char v : VOWELS) {
+            buildWords(syllablesLeft - 1, soFar + v, false, result);
+        }
+    }
+
+    // Any syllable (including first) can be consonant + vowel
+    for (char c : CONSONANTS) {
+        for (char v : VOWELS) {
+            buildWords(syllablesLeft - 1, soFar + c + v, false, result);
+        }
+    }
+}
+
 Vector<string> allRecursianWords(int numSyllables) {
-    /* TODO: Delete this comment and the next few lines, then implement
-     * this function.
-     */
-    (void) numSyllables;
-    return { };
+    if (numSyllables < 0) {
+        error("Number of syllables cannot be negative.");
+    }
+
+    Vector<string> result;
+    buildWords(numSyllables, "", true, result);
+    return result;
 }
 
 

@@ -2,12 +2,98 @@
 using namespace std;
 
 Vector<Rectangle> makeTemple(const Rectangle& bounds, const TempleParameters& params) {
-    /* TODO: Delete this comment and the next few lines, then implement this function. */
-    (void) bounds;
-    (void) params;
-    return { };
-}
+    Vector<Rectangle> temple;
 
+    // Handle base cases
+    if (params.order < 0) {
+        error("Temple order cannot be negative");
+    }
+
+    if (params.order == 0) {
+        return temple; // Return empty vector for order 0
+    }
+
+    // Calculate the base dimensions and position
+    int baseWidth = bounds.width * params.baseWidth;
+    int baseHeight = bounds.height * params.baseHeight;
+    int baseX = bounds.x + (bounds.width - baseWidth) / 2; // Center horizontally
+    int baseY = bounds.y + bounds.height - baseHeight; // Flush against bottom
+
+    // Add the base to our temple
+    Rectangle base;
+    base.x = baseX;
+    base.y = baseY;
+    base.width = baseWidth;
+    base.height = baseHeight;
+    temple.add(base);
+
+    // Calculate the column dimensions and position
+    int columnWidth = bounds.width * params.columnWidth;
+    int columnHeight = bounds.height * params.columnHeight;
+    int columnX = bounds.x + (bounds.width - columnWidth) / 2; // Center horizontally
+    int columnY = baseY - columnHeight; // Flush against top of base
+
+    // Add the column to our temple
+    Rectangle column;
+    column.x = columnX;
+    column.y = columnY;
+    column.width = columnWidth;
+    column.height = columnHeight;
+    temple.add(column);
+
+    // Calculate the upper temple bounding box
+    Rectangle upperTempleBounds;
+    upperTempleBounds.x = columnX;                                  // Same x as column
+    upperTempleBounds.y = columnY - bounds.height * params.upperTempleHeight; // Flush against top of column
+    upperTempleBounds.width = columnWidth;                          // Same width as column
+    upperTempleBounds.height = bounds.height * params.upperTempleHeight;  // Height as specified
+
+    // Recursively create the upper temple (order - 1)
+    if (params.order > 1) {
+        TempleParameters upperParams = params;
+        upperParams.order = params.order - 1;
+
+        // Add the upper temple recursively
+        Vector<Rectangle> upperTemple = makeTemple(upperTempleBounds, upperParams);
+        temple.addAll(upperTemple);
+
+        // Add the smaller temples across the base
+        if (params.numSmallTemples >= 2) {
+            int smallTempleWidth = bounds.width * params.smallTempleWidth;
+            int smallTempleHeight = bounds.height * params.smallTempleHeight;
+
+            // Calculate the total width needed for all small temples
+            int totalSmallTemplesWidth = params.numSmallTemples * smallTempleWidth;
+
+            // Calculate space between temples (if any)
+            double spacing = 0;
+            if (params.numSmallTemples > 1) {
+                spacing = (baseWidth - totalSmallTemplesWidth) / (double)(params.numSmallTemples - 1);
+            }
+
+            // Position each small temple evenly across the base
+            for (int i = 0; i < params.numSmallTemples; i++) {
+                int smallTempleX = baseX + i * (smallTempleWidth + spacing);
+                int smallTempleY = baseY - smallTempleHeight; // Flush against top of base
+
+                Rectangle smallTempleBounds;
+                smallTempleBounds.x = smallTempleX;
+                smallTempleBounds.y = smallTempleY;
+                smallTempleBounds.width = smallTempleWidth;
+                smallTempleBounds.height = smallTempleHeight;
+
+                // Create each smaller temple with order - 1
+                TempleParameters smallParams = params;
+                smallParams.order = params.order - 1;
+
+                Vector<Rectangle> smallTemple = makeTemple(smallTempleBounds, smallParams);
+                temple.addAll(smallTemple);
+            }
+        }
+    }
+
+    return temple;
+}
 
 
 /* * * * * Test Cases Below This Point * * * * */

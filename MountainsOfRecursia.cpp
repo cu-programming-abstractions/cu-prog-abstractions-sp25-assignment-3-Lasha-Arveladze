@@ -2,17 +2,46 @@
 using namespace std;
 
 Vector<Point> makeMountainRange(const Point& left,
-                                const Point& right,
-                                int amplitude,
-                                double decayRate) {
-    /* TODO: Delete this comment and the next few lines, then implement this
-     * function.
-     */
-    (void) left;
-    (void) right;
-    (void) amplitude;
-    (void) decayRate;
-    return { };
+                                 const Point& right,
+                                 int amplitude,
+                                 double decayRate) {
+    // Error checking
+    if (left.x > right.x) {
+        error("Left point must not be to the right of the right point.");
+    }
+    if (amplitude < 0) {
+        error("Amplitude must be non-negative.");
+    }
+    if (decayRate < 0 || decayRate > 1) {
+        error("Decay rate must be between 0 and 1.");
+    }
+
+    // Base case: if the segment is short enough, return a straight line
+    if (right.x - left.x <= 3) {
+        Vector<Point> base;
+        base += left;
+        base += right;
+        return base;
+    }
+
+    int midX = (left.x + right.x) / 2;
+    int midY = (left.y + right.y) / 2;
+
+    int displacement = randomInteger(-amplitude, amplitude);
+    midY += displacement;
+
+    Point mid;
+    mid.x = midX;
+    mid.y = midY;
+
+    // Recurse on left and right halves with reduced amplitude
+    Vector<Point> leftRange = makeMountainRange(left, mid, amplitude * decayRate, decayRate);
+    Vector<Point> rightRange = makeMountainRange(mid, right, amplitude * decayRate, decayRate);
+
+    leftRange.remove(leftRange.size() - 1);
+    leftRange += rightRange;
+
+    return leftRange;
 }
 
 /* * * * * Test Cases Below This Point * * * * */
